@@ -1,10 +1,11 @@
 import { Column, Entity } from 'typeorm';
 import { TemplateEntity } from './template.entity';
+import { EStatus } from '../../enum/base';
 
 @Entity({ name: 'users' })
 export class UserEntity extends TemplateEntity {
   @Column({ type: 'varchar', nullable: true })
-  displayName: string;
+  displayName?: string | null;
 
   @Column({ type: 'bytea', nullable: true })
   email: string;
@@ -17,4 +18,7 @@ export class UserEntity extends TemplateEntity {
 
   @Column({ type: 'boolean' })
   agreeTermsPolicy: boolean;
+
+  @Column({ type: 'enum', enum: EStatus, default: EStatus.ACTIVE })
+  status: EStatus;
 }
