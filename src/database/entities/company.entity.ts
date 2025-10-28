@@ -2,6 +2,8 @@ import { Column, Entity, OneToMany } from 'typeorm';
 import { TemplateEntity } from './template.entity';
 import { CompanyUserEntity } from './company-user.entity';
 import { EStatus } from '../../enum/company';
+import { CategoryEntity } from './category.entity';
+import { GroupEntity } from './group.entity';
 
 @Entity({ name: 'company' })
 export class CompanyEntity extends TemplateEntity {
@@ -40,4 +42,10 @@ export class CompanyEntity extends TemplateEntity {
 
   @OneToMany(() => CompanyUserEntity, (companyUser) => companyUser.company_uuid)
   company_user: CompanyUserEntity[];
+
+  @OneToMany(() => CategoryEntity, (category) => category.company_uuid)
+  company_category: CategoryEntity[];
+
+  @OneToMany(() => GroupEntity, (group) => group.company_uuid)
+  company_group: GroupEntity[];
 }
