@@ -18,6 +18,12 @@ import { CreateCompanyDto } from './dto/createCompany.dto';
 import { CompanyService } from './company.service';
 import { CurrentUser } from '../current-user/current-user.decorator';
 import type { ICurrentUser } from '../current-user/current-user.decorator';
+import { RolesGuard } from '../guard/role.guard';
+import { Permission } from '../permission/permission. decorator';
+import {
+  EAction,
+  EAdminFeature,
+} from '../permission/interface/permission.interface';
 
 @ApiTags('company')
 @UseGuards(AuthGuard)
@@ -43,6 +49,11 @@ export class CompanyController {
   }
 
   @Put('/:id')
+  @UseGuards(RolesGuard)
+  @Permission({
+    feature: EAdminFeature.COMPANY,
+    action: EAction.update,
+  })
   async update(
     @CurrentUser() user: ICurrentUser,
     @Param('id') id: string,
@@ -60,6 +71,11 @@ export class CompanyController {
   }
 
   @Delete('/:id')
+  @UseGuards(RolesGuard)
+  @Permission({
+    feature: EAdminFeature.COMPANY,
+    action: EAction.delete,
+  })
   async delete(
     @CurrentUser() user: ICurrentUser,
     @Param('id') id: string,

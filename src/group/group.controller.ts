@@ -23,10 +23,16 @@ import { GroupService } from './group.service';
 import httpStatus from 'http-status';
 import { AddUserGroupDto } from './dto/addUserGroup.dto';
 import { PaginationQueryDto } from '../common/pagination.dto';
+import { RolesGuard } from '../guard/role.guard';
+import { Permission } from '../permission/permission. decorator';
+import {
+  EAction,
+  EAdminFeature,
+} from '../permission/interface/permission.interface';
 
 @ApiTags('Group')
 @ApiBearerAuth()
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RolesGuard)
 @Controller('/group')
 export class GroupController {
   private readonly logger = new SaveAppLog(GroupController.name);
@@ -34,6 +40,10 @@ export class GroupController {
   constructor(private readonly groupService: GroupService) {}
 
   @Post('/')
+  @Permission({
+    feature: EAdminFeature.GROUP,
+    action: EAction.insert,
+  })
   async create(
     @CurrentUser() user: ICurrentUser,
     @Body() body: CreateGroupDto,
@@ -59,6 +69,10 @@ export class GroupController {
   }
 
   @Get('/')
+  @Permission({
+    feature: EAdminFeature.GROUP,
+    action: EAction.view,
+  })
   async listGroup(
     @CurrentUser() user: ICurrentUser,
     @Query() query: PaginationQueryDto,
@@ -87,6 +101,10 @@ export class GroupController {
   }
 
   @Put('/:id')
+  @Permission({
+    feature: EAdminFeature.GROUP,
+    action: EAction.update,
+  })
   async updateGroup(
     @CurrentUser() user: ICurrentUser,
     @Param('id') uuid: string,
@@ -104,6 +122,10 @@ export class GroupController {
   }
 
   @Delete('/:id')
+  @Permission({
+    feature: EAdminFeature.GROUP,
+    action: EAction.delete,
+  })
   async deleteGroup(
     @CurrentUser() user: ICurrentUser,
     @Param('id') uuid: string,
@@ -120,6 +142,10 @@ export class GroupController {
   }
 
   @Post('/:id/add-user')
+  @Permission({
+    feature: EAdminFeature.GROUP,
+    action: EAction.view,
+  })
   async addUser(
     @CurrentUser() user: ICurrentUser,
     @Param('id') uuid: string,

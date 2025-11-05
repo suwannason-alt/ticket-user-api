@@ -1,4 +1,4 @@
-import { Controller, Query, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../guard/auth.guard';
 import { CategoryService } from './category.service';
@@ -9,13 +9,24 @@ import {
 } from '../current-user/current-user.decorator';
 import httpStatus from 'http-status';
 import { PaginationQueryDto } from '../common/pagination.dto';
+import { RolesGuard } from '../guard/role.guard';
+import { Permission } from '../permission/permission. decorator';
+import {
+  EAction,
+  EAdminFeature,
+} from '../permission/interface/permission.interface';
 
 @ApiTags('Category')
 @Controller('/category')
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RolesGuard)
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
+  @Get('/')
+  @Permission({
+    feature: EAdminFeature.CATEGORY,
+    action: EAction.view,
+  })
   async getCategory(
     @CurrentUser() user: ICurrentUser,
     @Query() query: PaginationQueryDto,

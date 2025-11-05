@@ -22,6 +22,12 @@ import {
   type ICurrentUser,
 } from '../current-user/current-user.decorator';
 import { PaginationQueryDto } from '../common/pagination.dto';
+import { RolesGuard } from '../guard/role.guard';
+import { Permission } from '../permission/permission. decorator';
+import {
+  EAction,
+  EAdminFeature,
+} from '../permission/interface/permission.interface';
 
 @Controller('/user')
 @ApiBearerAuth()
@@ -81,7 +87,11 @@ export class UserController {
     }
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Permission({
+    feature: EAdminFeature.USER,
+    action: EAction.insert,
+  })
   @Post('/invite')
   async inviteUser(
     @CurrentUser() user: ICurrentUser,
@@ -99,7 +109,11 @@ export class UserController {
     }
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Permission({
+    feature: EAdminFeature.USER,
+    action: EAction.view,
+  })
   @Get('/invite')
   async getInvite(
     @CurrentUser() user: ICurrentUser,
