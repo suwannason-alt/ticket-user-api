@@ -118,4 +118,19 @@ export class CompanyService {
       this.logger.error(error.message, error.stack, this.delete.name);
     }
   }
+
+  async isActive(uuid: string) {
+    try {
+      const company = await this.companyRepoSitory
+        .createQueryBuilder(`c`)
+        .where(`c.uuid = :uuid`, { uuid })
+        .andWhere(`c.status = :status`, { status: EStatus.ACTIVE })
+        .getOne();
+
+      return company ? true : false;
+    } catch (error) {
+      this.logger.error(error.message, error.stack, this.isActive.name);
+      throw new Error(error);
+    }
+  }
 }

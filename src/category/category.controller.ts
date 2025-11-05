@@ -8,6 +8,7 @@ import {
   type ICurrentUser,
 } from '../current-user/current-user.decorator';
 import httpStatus from 'http-status';
+import { PaginationQueryDto } from '../common/pagination.dto';
 
 @ApiTags('Category')
 @Controller('/category')
@@ -17,11 +18,11 @@ export class CategoryController {
 
   async getCategory(
     @CurrentUser() user: ICurrentUser,
-    @Query('page') page: number,
-    @Query('limit') limit: number,
+    @Query() query: PaginationQueryDto,
     @Res() res: Response,
   ) {
     try {
+      const { page, limit } = query;
       const { data, count } = await this.categoryService.getCategory(
         user.company,
         page,

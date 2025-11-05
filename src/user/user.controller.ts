@@ -21,6 +21,7 @@ import {
   CurrentUser,
   type ICurrentUser,
 } from '../current-user/current-user.decorator';
+import { PaginationQueryDto } from '../common/pagination.dto';
 
 @Controller('/user')
 @ApiBearerAuth()
@@ -102,11 +103,11 @@ export class UserController {
   @Get('/invite')
   async getInvite(
     @CurrentUser() user: ICurrentUser,
-    @Query('page') page: number,
-    @Query('limit') limit: number,
+    @Query() query: PaginationQueryDto,
     @Res() res: Response,
   ) {
     try {
+      const { page, limit } = query;
       const result = await this.userService.listInvite(page, limit, user);
       res.status(httpStatus.OK);
       res.json({

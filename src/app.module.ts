@@ -9,6 +9,8 @@ import { CredentialModule } from './credential/credential.module';
 import { CompanyModule } from './company/company.module';
 import { CategoryModule } from './category/category.module';
 import { GroupModule } from './group/group.module';
+import { PermissionModule } from './permission/permission.module';
+import { RoleModule } from './role/role.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { GroupModule } from './group/group.module';
     CompanyModule,
     CategoryModule,
     GroupModule,
+    PermissionModule,
+    RoleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

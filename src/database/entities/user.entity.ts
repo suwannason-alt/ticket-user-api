@@ -1,9 +1,17 @@
-import { Column, Entity, Index, OneToMany } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { TemplateEntity } from './template.entity';
 import { EStatus } from '../../enum/common';
 import { UserProvider } from './userProvider.entity';
 import { CompanyUserEntity } from './company-user.entity';
 import { UserGroupEntity } from './user-group.entity';
+import { RoleEntity } from './role.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity extends TemplateEntity {
@@ -38,4 +46,8 @@ export class UserEntity extends TemplateEntity {
     onDelete: 'CASCADE',
   })
   groupUser: UserGroupEntity[];
+
+  @ManyToOne(() => RoleEntity, (role) => role.users, { nullable: true })
+  @JoinColumn({ name: 'role_uuid' })
+  role_uuid: string;
 }

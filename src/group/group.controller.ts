@@ -22,6 +22,7 @@ import { CreateGroupDto } from './dto/createGroup.dto';
 import { GroupService } from './group.service';
 import httpStatus from 'http-status';
 import { AddUserGroupDto } from './dto/addUserGroup.dto';
+import { PaginationQueryDto } from '../common/pagination.dto';
 
 @ApiTags('Group')
 @ApiBearerAuth()
@@ -60,11 +61,11 @@ export class GroupController {
   @Get('/')
   async listGroup(
     @CurrentUser() user: ICurrentUser,
-    @Query('page') page: number,
-    @Query('limit') limit: number,
+    @Query() query: PaginationQueryDto,
     @Res() res: Response,
   ) {
     try {
+      const { page, limit } = query;
       const result = await this.groupService.listGroup(
         user.company,
         page,

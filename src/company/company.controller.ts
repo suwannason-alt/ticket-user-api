@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   Post,
   Put,
@@ -79,6 +80,35 @@ export class CompanyController {
     } catch (error) {
       this.logger.error(error.message, error.stack, this.delete.name);
       res.status(httpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Get('/:uuid/is-active')
+  async companyIsActive(
+    @CurrentUser() user: ICurrentUser,
+    @Param('uuid') uuid: string,
+    @Res() res: Response,
+  ) {
+    try {
+      if (user.company !== uuid) {
+        res.status(httpStatus.BAD_REQUEST);
+        res.json({
+          success: false,
+          message: `Invalid company authentication.`,
+        });
+        return;
+      }
+      const isActive = await this.companyService.isActive(uuid);
+      if (isActive) {
+        res.status(httpStatus.OK);
+        res.json({ success: true, message: `Verify company completed.` });
+        return;
+      }
+      res.status(httpStatus.GONE);
+      res.json({ success: false, message: `Company is not active.` });
+    } catch (error) {
+      this.logger.error(error.message, error.stack, this.companyIsActive.name);
+      res.status(httpStatus.FORBIDDEN);
     }
   }
 }

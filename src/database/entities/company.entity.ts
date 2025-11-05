@@ -4,6 +4,7 @@ import { CompanyUserEntity } from './company-user.entity';
 import { CategoryEntity } from './category.entity';
 import { GroupEntity } from './group.entity';
 import { EStatus } from '../../enum/common';
+import { RoleEntity } from './role.entity';
 
 @Entity({ name: 'company' })
 export class CompanyEntity extends TemplateEntity {
@@ -48,4 +49,7 @@ export class CompanyEntity extends TemplateEntity {
 
   @OneToMany(() => GroupEntity, (group) => group.company_uuid)
   company_group: GroupEntity[];
+
+  @OneToMany(() => RoleEntity, (role) => role.company_uuid)
+  role_company: RoleEntity[];
 }
