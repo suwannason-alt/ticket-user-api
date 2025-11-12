@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Post,
   Query,
   Res,
@@ -29,9 +31,9 @@ import {
   EAdminFeature,
 } from '../permission/interface/permission.interface';
 
-@Controller('/user')
+@Controller('/users')
 @ApiBearerAuth()
-@ApiTags('user')
+@ApiTags('User')
 export class UserController {
   private readonly logger = new SaveAppLog(UserController.name);
   constructor(
@@ -132,6 +134,26 @@ export class UserController {
     } catch (error) {
       this.logger.error(error.message, error.stack, this.getInvite.name);
       res.status(httpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Delete('/:uuid')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Permission({
+    feature: EAdminFeature.USER,
+    action: EAction.delete,
+  })
+  async deleteUser(
+    @CurrentUser() user: ICurrentUser,
+    @Param('uuid') uuid: string,
+    @Res() res: Response,
+  ) {
+    try {
+      await this.userService.deleteUser(uuid, user);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(httpStatus.INTERNAL_SERVER_ERROR);
+      res.json({ success: false, message: error.message });
     }
   }
 }

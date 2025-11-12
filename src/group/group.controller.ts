@@ -33,7 +33,7 @@ import {
 @ApiTags('Group')
 @ApiBearerAuth()
 @UseGuards(AuthGuard, RolesGuard)
-@Controller('/group')
+@Controller('/groups')
 export class GroupController {
   private readonly logger = new SaveAppLog(GroupController.name);
 

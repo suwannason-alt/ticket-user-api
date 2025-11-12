@@ -171,9 +171,9 @@ export class RoleService {
         .getOne();
 
       const query = this.permissionRepository
-        .createQueryBuilder(`c`)
-        .innerJoin(RoleEntity, `r`, `r.uuid = p.role_uuid`)
+        .createQueryBuilder(`p`)
         .innerJoin(FeatureEntity, `f`, `f.uuid = p.feature_uuid`)
+        .innerJoin(RoleEntity, `r`, `r.uuid = p.role_uuid`)
         .innerJoin(ServiceEntity, `s`, `s.uuid = f.service_uuid`)
         .where(`r.uuid = :uuid`, { uuid })
         .select([
@@ -189,6 +189,11 @@ export class RoleService {
       if (role?.company_uuid) {
         query.andWhere(`r.company_uuid = :company`, { company });
       }
+      query
+        .groupBy(`s.uuid`)
+        .addGroupBy(`s.name`)
+        .addGroupBy(`f.uuid`)
+        .addGroupBy(`f.name`);
 
       const data = await query.getRawMany();
       if (!data) {

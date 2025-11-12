@@ -25,6 +25,16 @@ export enum ETicketFeature {
   ASSIGNMENT = 'Assignment',
 }
 
+export enum EAllFeature {
+  CATEGORY = 'Category namagement',
+  GROUP = 'Group management',
+  ROLE = 'Role management',
+  USER = 'User management',
+  COMPANY = 'Company management',
+  TICKET = 'Ticket',
+  ASSIGNMENT = 'Assignment',
+}
+
 export interface IAllowAction {
   feature: EAdminFeature;
   action: EAction;

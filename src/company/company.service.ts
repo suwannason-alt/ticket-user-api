@@ -6,6 +6,8 @@ import { CreateCompanyDto } from './dto/createCompany.dto';
 import { SaveAppLog } from '../utils/logger';
 import { CompanyUserEntity } from '../database/entities/company-user.entity';
 import { EStatus } from '../enum/common';
+import { ServiceEntity } from '../database/entities/service.entity';
+import { FeatureEntity } from '../database/entities/feature.entity';
 
 @Injectable()
 export class CompanyService {
@@ -16,6 +18,12 @@ export class CompanyService {
 
     @InjectRepository(CompanyUserEntity)
     private readonly companyUserRepository: Repository<CompanyUserEntity>,
+
+    @InjectRepository(ServiceEntity)
+    private readonly serviceRepository: Repository<ServiceEntity>,
+
+    @InjectRepository(FeatureEntity)
+    private readonly featureRepository: Repository<FeatureEntity>,
   ) {}
 
   async create(body: CreateCompanyDto, userId: string) {
@@ -130,6 +138,45 @@ export class CompanyService {
       return company ? true : false;
     } catch (error) {
       this.logger.error(error.message, error.stack, this.isActive.name);
+      throw new Error(error);
+    }
+  }
+
+  async companyService(company: string) {
+    try {
+      this.logger.log(`company ${company} read service`);
+      const data = await this.serviceRepository
+        .createQueryBuilder(`s`)
+        .select([
+          `s.uuid AS uuid`,
+          `s.name AS name`,
+          `s.description AS description`,
+        ])
+        .getRawMany();
+
+      return data;
+    } catch (error) {
+      this.logger.error(error.message, error.stack, this.companyService.name);
+      throw new Error(error);
+    }
+  }
+
+  async companyFeature(service: string, company: string) {
+    try {
+      this.logger.log(`company ${company} read feature ${service}`);
+      const data = await this.featureRepository
+        .createQueryBuilder(`f`)
+        .innerJoin(ServiceEntity, `s`, `f.service_uuid = s.uuid`)
+        .where(`s.uuid = :service`, { service })
+        .andWhere(`f.status = :status`, { status: EStatus.ACTIVE })
+        .select([`f.uuid AS uuid`, `f.name AS feature`])
+        .getRawMany();
+
+      this.logger.log(`company ${company} read feature`);
+
+      return data;
+    } catch (error) {
+      this.logger.error(error.message, error.stack, this.companyFeature.name);
       throw new Error(error);
     }
   }

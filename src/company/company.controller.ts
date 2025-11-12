@@ -9,7 +9,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import httpStatus from 'http-status';
 import type { Response } from 'express';
 import { SaveAppLog } from '../utils/logger';
@@ -25,7 +25,8 @@ import {
   EAdminFeature,
 } from '../permission/interface/permission.interface';
 
-@ApiTags('company')
+@ApiTags('Company')
+@ApiBearerAuth()
 @UseGuards(AuthGuard)
 @Controller('/company')
 export class CompanyController {
@@ -99,22 +100,13 @@ export class CompanyController {
     }
   }
 
-  @Get('/:uuid/is-active')
+  @Get('/is-active')
   async companyIsActive(
     @CurrentUser() user: ICurrentUser,
-    @Param('uuid') uuid: string,
     @Res() res: Response,
   ) {
     try {
-      if (user.company !== uuid) {
-        res.status(httpStatus.BAD_REQUEST);
-        res.json({
-          success: false,
-          message: `Invalid company authentication.`,
-        });
-        return;
-      }
-      const isActive = await this.companyService.isActive(uuid);
+      const isActive = await this.companyService.isActive(user.company);
       if (isActive) {
         res.status(httpStatus.OK);
         res.json({ success: true, message: `Verify company completed.` });
@@ -125,6 +117,48 @@ export class CompanyController {
     } catch (error) {
       this.logger.error(error.message, error.stack, this.companyIsActive.name);
       res.status(httpStatus.FORBIDDEN);
+    }
+  }
+
+  @Get('/service')
+  async getCompanyService(
+    @CurrentUser() user: ICurrentUser,
+    @Res() res: Response,
+  ) {
+    try {
+      const services = await this.companyService.companyService(user.company);
+      res.json({ success: true, message: `Service company.`, data: services });
+    } catch (error) {
+      res.status(httpStatus.INTERNAL_SERVER_ERROR);
+      res.json({ success: false, message: error.message });
+    }
+  }
+
+  @Get('/feature/:service')
+  async getCompanyFeature(
+    @CurrentUser() user: ICurrentUser,
+    @Param('service') service_uuid: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const features = await this.companyService.companyFeature(
+        service_uuid,
+        user.company,
+      );
+      res.json({
+        success: true,
+        message: 'Features service completed',
+        data: features,
+      });
+    } catch (error) {
+      let status;
+      if (error.message.includes(`can't delete user`)) {
+        status = httpStatus.FORBIDDEN;
+      } else {
+        status = httpStatus.INTERNAL_SERVER_ERROR;
+      }
+      res.status(status);
+      res.json({ success: false, message: error.message });
     }
   }
 }

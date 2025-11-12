@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../database/entities/user.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { SaveAppLog } from '../utils/logger';
 import { RegisterDto } from './dto/register.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
 import { enc } from 'crypto-js';
 import sha1 from 'crypto-js/sha1';
-import { EStatus as commonStatus } from '../enum/common';
+import { EStatus as commonStatus, EStatus } from '../enum/common';
 import { LoginDto } from './dto/login.dto';
 import { CompanyUserEntity } from '../database/entities/company-user.entity';
 import { InviteDto } from './dto/invite.dto';
@@ -21,6 +21,8 @@ export class UserService {
   private readonly logger = new SaveAppLog(UserService.name);
   constructor(
     private readonly configService: ConfigService,
+
+    private dataSource: DataSource,
 
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
@@ -228,6 +230,59 @@ export class UserService {
     } catch (error) {
       this.logger.error(error.message, error.stack, this.listInvite.name);
       throw new Error(error);
+    }
+  }
+
+  async deleteUser(uuid: string, user: ICurrentUser) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    this.logger.log(`connected transaction..`, this.deleteUser.name);
+    try {
+      const check = await this.companyUserRepository
+        .createQueryBuilder(`cu`)
+        .where(`cu.user_uuid = :user`, { user: uuid })
+        .andWhere(`cu.company_uuid = :company`, { company: user.company })
+        .andWhere(`cu.status = :status`, { status: EStatus.ACTIVE })
+        .getOne();
+
+      if (!check) {
+        throw new Error(`can't delete user from company`);
+      }
+      await queryRunner.startTransaction();
+      this.logger.log(`started transaction..`, this.deleteUser.name);
+      await this.userRepository
+        .createQueryBuilder(`u`, queryRunner)
+        .update()
+        .set({
+          status: commonStatus.ARCHIVED,
+          archivedAt: new Date(),
+          archivedBy: user.uuid,
+        })
+        .where(`uuid = :uuid`, { uuid })
+        .execute();
+
+      this.logger.log(`delete user ${uuid} completed`, this.deleteUser.name);
+
+      await this.companyUserRepository
+        .createQueryBuilder(`cu`, queryRunner)
+        .update()
+        .set({
+          status: commonStatus.ARCHIVED,
+          archivedAt: new Date(),
+          archivedBy: user.uuid,
+        })
+        .where(`user_uuid = :user`, { user: uuid })
+        .execute();
+
+      await queryRunner.commitTransaction();
+      this.logger.log(`delete from company ${user.company} complete`);
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error(error.message, error.stack, this.deleteUser.name);
+      throw Error(error);
+    } finally {
+      await queryRunner.release();
+      this.logger.log(`released transaction..`, this.deleteUser.name);
     }
   }
 }

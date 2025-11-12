@@ -11,7 +11,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: new SaveAppLog(AppModule.name),
   });
-
   process.env.TZ = 'Asia/Bangkok';
   app.setGlobalPrefix('/api/v1');
   app.enableCors();

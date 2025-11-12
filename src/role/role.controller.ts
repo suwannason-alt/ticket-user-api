@@ -27,9 +27,11 @@ import {
 import { CreateRoleDto } from './dto/createRole.dto';
 import { PaginationQueryDto } from '../common/pagination.dto';
 import { UpdatePermissionDto } from './dto/updatePermission.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @UseGuards(AuthGuard, RolesGuard)
-@Controller('/role')
+@ApiBearerAuth()
+@Controller('/roles')
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 

@@ -8,6 +8,8 @@ import { FeatureEntity } from '../database/entities/feature.entity';
 import { ServiceEntity } from '../database/entities/service.entity';
 import { SaveAppLog } from '../utils/logger';
 import { EStatus } from '../enum/common';
+import { CreatePermissionDto } from './dto/permission.dto';
+import { ICurrentUser } from '../current-user/current-user.decorator';
 
 @Injectable()
 export class PermissionService {
@@ -18,12 +20,6 @@ export class PermissionService {
   ) {}
 
   baseQueryBuilder() {
-    // return this.userRepository
-    //   .createQueryBuilder(`u`)
-    //   .innerJoin(RoleEntity, `r`, `r.uuid = u.role_uuid`)
-    //   .innerJoin(PermissionEntity, `p`, `p.role_uuid = r.uuid`)
-    //   .innerJoin(FeatureEntity, `f`, `f.uuid = p.feature_uuid`)
-    //   .innerJoin(ServiceEntity, `s`, `s.uuid = f.service_uuid`);
     return this.permissionRepository
       .createQueryBuilder(`p`)
       .innerJoin(RoleEntity, `r`, `r.uuid = p.role_uuid`)
@@ -67,6 +63,38 @@ export class PermissionService {
     } catch (error) {
       this.logger.error(error.message, error.stack, this.readPermission.name);
       throw new Error(error);
+    }
+  }
+
+  async createPermission(body: CreatePermissionDto, user: ICurrentUser) {
+    try {
+      const permissions: any = [];
+
+      for (const permission of body.permissions) {
+        permissions.push({
+          role_uuid: body.role_uuid,
+          feature_uuid: body.feature_uuid,
+          createdBy: user.uuid,
+          permission: {
+            insert: permission.insert,
+            update: permission.update,
+            delete: permission.delete,
+            view: permission.view,
+          },
+        });
+      }
+      await this.permissionRepository
+        .createQueryBuilder()
+        .insert()
+        .into(PermissionEntity)
+        .values(permissions)
+        .execute();
+      this.logger.log(
+        `create permission completed`,
+        this.createPermission.name,
+      );
+    } catch (error) {
+      this.logger.error(error.message, error.stack, this.createPermission.name);
     }
   }
 }
