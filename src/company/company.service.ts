@@ -8,6 +8,8 @@ import { CompanyUserEntity } from '../database/entities/company-user.entity';
 import { EStatus } from '../enum/common';
 import { ServiceEntity } from '../database/entities/service.entity';
 import { FeatureEntity } from '../database/entities/feature.entity';
+import { ICurrentUser } from '../current-user/current-user.decorator';
+import { CredentialService } from '../credential/credential.service';
 
 @Injectable()
 export class CompanyService {
@@ -24,6 +26,8 @@ export class CompanyService {
 
     @InjectRepository(FeatureEntity)
     private readonly featureRepository: Repository<FeatureEntity>,
+
+    private readonly credentialService: CredentialService,
   ) {}
 
   async create(body: CreateCompanyDto, userId: string) {
@@ -178,6 +182,36 @@ export class CompanyService {
     } catch (error) {
       this.logger.error(error.message, error.stack, this.companyFeature.name);
       throw new Error(error);
+    }
+  }
+
+  async switchCompany(bearer: string, company: string, user: ICurrentUser) {
+    try {
+      const check = await this.companyUserRepository
+        .createQueryBuilder(`cu`)
+        .where(`cu.company_uuid = :new`, { new: company })
+        .andWhere(`cu.status = :status`, { status: EStatus.ACTIVE })
+        .getOne();
+
+      if (!check) {
+        throw new Error(`No permission in company`);
+      }
+      const payload = {
+        uuid: user.uuid,
+        company,
+      };
+      const newAuthen = await this.credentialService.changeToken(
+        bearer,
+        payload,
+      );
+      this.logger.log(
+        `user switch company from ${user.company} to ${company}`,
+        this.switchCompany.name,
+      );
+      return newAuthen.data;
+    } catch (error) {
+      this.logger.error(error.message, error.stack, this.switchCompany.name);
+      throw Error(error);
     }
   }
 }

@@ -82,7 +82,7 @@ export class UserController {
         company: user.company,
       });
       res.status(httpStatus.OK);
-      res.json({ success: true, data: jwt.data });
+      res.json({ success: true, data: jwt.data.token });
     } catch (error: any) {
       res.status(httpStatus.INTERNAL_SERVER_ERROR);
       res.json({ success: false, message: error.message });

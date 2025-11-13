@@ -33,7 +33,8 @@ export class AuthGuard implements CanActivate {
       return true;
     } catch (error) {
       this.logger.error(error.message, error.stack, this.canActivate.name);
-      return false;
+      throw new UnauthorizedException('Authorization fail');
+      // return false;
     }
   }
 }

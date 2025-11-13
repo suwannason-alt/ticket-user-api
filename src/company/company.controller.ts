@@ -4,10 +4,12 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Res,
   UseGuards,
+  Headers,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import httpStatus from 'http-status';
@@ -97,6 +99,30 @@ export class CompanyController {
     } catch (error) {
       this.logger.error(error.message, error.stack, this.delete.name);
       res.status(httpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Patch('/switch-company/:company')
+  async userSwitchCompany(
+    @Headers('Authorization') authorization: string,
+    @CurrentUser() user: ICurrentUser,
+    @Param('company') company: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const data = await this.companyService.switchCompany(
+        authorization,
+        company,
+        user,
+      );
+      res.json({
+        success: true,
+        message: `Switch company completed`,
+        data: data.token,
+      });
+    } catch (error) {
+      res.status(httpStatus.UNAUTHORIZED);
+      res.json({ success: false, message: error.message });
     }
   }
 

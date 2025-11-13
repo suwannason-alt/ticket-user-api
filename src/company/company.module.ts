@@ -7,6 +7,7 @@ import { CompanyUserEntity } from '../database/entities/company-user.entity';
 import { PermissionModule } from '../permission/permission.module';
 import { ServiceEntity } from '../database/entities/service.entity';
 import { FeatureEntity } from '../database/entities/feature.entity';
+import { CredentialModule } from '../credential/credential.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { FeatureEntity } from '../database/entities/feature.entity';
       FeatureEntity,
     ]),
     PermissionModule,
+    CredentialModule,
   ],
   controllers: [CompanyController],
   providers: [CompanyService],
