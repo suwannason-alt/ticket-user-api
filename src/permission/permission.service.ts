@@ -97,4 +97,35 @@ export class PermissionService {
       this.logger.error(error.message, error.stack, this.createPermission.name);
     }
   }
+
+  async getPermissionsByUser(user_uuid: string, company_uuid: string) {
+    try {
+      const query = this.baseQueryBuilder();
+      query.where(`u.uuid = :user`, { user: user_uuid });
+      query.andWhere(`r.status = :status`, { status: EStatus.ACTIVE });
+      query.andWhere(
+        new Brackets((qb) => {
+          qb.where('r.company_uuid IS NULL').orWhere(
+            'r.company_uuid = :company',
+            { company: company_uuid },
+          );
+        }),
+      );
+      query.groupBy(`s.uuid`).addGroupBy(`s.name`);
+      query.select([
+        's.uuid AS uuid',
+        's.name AS name',
+        `MIN(s.description) AS description`,
+      ]);
+      const data = await query.getRawMany();
+      return data;
+    } catch (error) {
+      this.logger.error(
+        error.message,
+        error.stack,
+        this.getPermissionsByUser.name,
+      );
+      throw new Error(error);
+    }
+  }
 }

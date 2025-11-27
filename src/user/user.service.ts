@@ -90,7 +90,11 @@ export class UserService {
         })
         .andWhere(`u.status = :status`, { status: commonStatus.ACTIVE })
         .useIndex(`users_emailHash_idx`)
-        .select([`u.uuid AS uuid`])
+        .select([
+          `u.uuid AS uuid`,
+          `pgp_sym_decrypt(u.email , '${this.configService.get('ENCRYPTION_KEY')}') AS email`,
+          `u."displayName" AS "displayName"`,
+        ])
         .getRawOne();
 
       if (!user) {
@@ -106,6 +110,8 @@ export class UserService {
       Object.assign(userObj, {
         uuid: user.uuid,
         company: company?.company_uuid || null,
+        email: user.email,
+        displayName: user.displayName,
       });
       return userObj;
     } catch (error) {
@@ -283,6 +289,27 @@ export class UserService {
     } finally {
       await queryRunner.release();
       this.logger.log(`released transaction..`, this.deleteUser.name);
+    }
+  }
+
+  async getProfile(uuid: string) {
+    try {
+      const profile = await this.userRepository
+        .createQueryBuilder(`u`)
+        .where(`u.uuid = :uuid`, { uuid })
+        .andWhere(`u.status = :status`, { status: commonStatus.ACTIVE })
+        .select([
+          `u.uuid AS uuid`,
+          `pgp_sym_decrypt(u.email , '${this.configService.get('ENCRYPTION_KEY')}') AS email`,
+          `u."displayName" AS "displayName"`,
+          `u."agreeTermsPolicy" AS "agreeTermsPolicy"`,
+          `u."createdAt" AS "createdAt"`,
+        ])
+        .getRawOne();
+      return profile;
+    } catch (error) {
+      this.logger.error(error.message, error.stack, this.getProfile.name);
+      throw new Error(error);
     }
   }
 }

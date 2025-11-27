@@ -51,6 +51,25 @@ export class CompanyController {
     }
   }
 
+  @Get('/')
+  async getUserCompany(
+    @CurrentUser() user: ICurrentUser,
+    @Res() res: Response,
+  ) {
+    try {
+      const company = await this.companyService.getUserCompanys(user.uuid);
+      res.status(httpStatus.OK);
+      res.json({
+        success: true,
+        message: `Get user company completed.`,
+        data: company,
+      });
+    } catch (error) {
+      this.logger.error(error.message, error.stack, this.getUserCompany.name);
+      res.status(httpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   @Put('/:id')
   @UseGuards(RolesGuard)
   @Permission({

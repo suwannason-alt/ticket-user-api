@@ -76,13 +76,20 @@ export class UserController {
         });
         return;
       }
-      const jwt = await this.credentialService.signJwt(user);
+      const jwt = await this.credentialService.signJwt({
+        uuid: user.uuid,
+        company: user.company,
+      });
       this.logger.log(`login completed`, this.login.name, {
         username: body.email,
         company: user.company,
       });
       res.status(httpStatus.OK);
-      res.json({ success: true, data: jwt.data.token });
+      res.json({
+        success: true,
+        data: jwt.data.token,
+        profile: user,
+      });
     } catch (error: any) {
       res.status(httpStatus.INTERNAL_SERVER_ERROR);
       res.json({ success: false, message: error.message });
@@ -134,6 +141,21 @@ export class UserController {
     } catch (error) {
       this.logger.error(error.message, error.stack, this.getInvite.name);
       res.status(httpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('/profile')
+  async getProfile(@CurrentUser() user: ICurrentUser, @Res() res: Response) {
+    try {
+      const profile = await this.userService.getProfile(user.uuid);
+      Object.assign(profile, { company: user.company });
+      res.status(httpStatus.OK);
+      res.json({ success: true, data: profile });
+    } catch (error) {
+      this.logger.error(error.message, error.stack, this.getProfile.name);
+      res.status(httpStatus.INTERNAL_SERVER_ERROR);
+      res.json({ success: false, message: error.message });
     }
   }
 

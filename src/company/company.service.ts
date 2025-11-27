@@ -214,4 +214,33 @@ export class CompanyService {
       throw Error(error);
     }
   }
+  async getUserCompanys(uuid: string) {
+    try {
+      const companys = await this.companyRepoSitory
+        .createQueryBuilder(`c`)
+        .innerJoin(CompanyUserEntity, `cu`, `c.uuid = cu.company_uuid`)
+        .where(`cu.user_uuid = :user`, { user: uuid })
+        .andWhere(`c.status = :status`, { status: EStatus.ACTIVE })
+        .andWhere(`cu.status = :cstatus`, { cstatus: EStatus.ACTIVE })
+        .select([
+          `c.uuid AS uuid`,
+          `c.name AS name`,
+          `c.address AS address`,
+          `c.telephone AS telephone`,
+          `c.email AS email`,
+          `c.city AS city`,
+          `c.state AS state`,
+          `c.country AS country`,
+          `c.postalCode AS postalCode`,
+          `c.description AS description`,
+        ])
+        .getRawMany();
+
+      this.logger.log(`get user companys`, this.getUserCompanys.name);
+      return companys;
+    } catch (error) {
+      this.logger.error(error.message, error.stack, this.getUserCompanys.name);
+      throw new Error(error);
+    }
+  }
 }

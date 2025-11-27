@@ -17,6 +17,9 @@ import entities from './entities';
         database: configService.get<string>('DB_NAME'),
         entities,
         synchronize: true,
+        ssl: {
+          rejectUnauthorized: false,
+        },
       }),
     }),
   ],

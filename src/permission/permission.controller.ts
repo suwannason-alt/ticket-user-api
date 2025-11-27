@@ -1,4 +1,12 @@
-import { Body, Controller, Patch, Post, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { PermissionService } from './permission.service';
 import { SaveAppLog } from '../utils/logger';
 import { AuthGuard } from '../guard/auth.guard';
@@ -57,6 +65,32 @@ export class PermissionController {
       await this.permissionService.createPermission(body, user);
       res.status(httpStatus.OK);
       res.json({ success: true });
+    } catch (error) {
+      res.status(httpStatus.INTERNAL_SERVER_ERROR);
+      res.json({ success: false, message: error.message });
+    }
+  }
+
+  @Get('/user')
+  async getCurrentPermissions(
+    @CurrentUser() user: ICurrentUser,
+    @Res() res: Response,
+  ) {
+    try {
+      const permissions = await this.permissionService.getPermissionsByUser(
+        user.uuid,
+        user.company,
+      );
+      this.logger.log(
+        `user permissions fetched`,
+        this.getCurrentPermissions.name,
+      );
+      res.status(httpStatus.OK);
+      res.json({
+        success: true,
+        message: `Current user permissions`,
+        data: permissions,
+      });
     } catch (error) {
       res.status(httpStatus.INTERNAL_SERVER_ERROR);
       res.json({ success: false, message: error.message });
