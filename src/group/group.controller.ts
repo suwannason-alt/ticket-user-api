@@ -61,7 +61,12 @@ export class GroupController {
         res.json({ success: false, message: `Cant't create group` });
         return;
       }
-      res.json({ success: true, message: `Create group completed.` });
+      res.status(httpStatus.CREATED);
+      res.json({
+        success: true,
+        message: `Create group completed.`,
+        data: results,
+      });
     } catch (error) {
       this.logger.error(error.message, error.stack, this.create.name);
       res.json({ success: false });

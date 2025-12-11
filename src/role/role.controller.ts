@@ -29,13 +29,14 @@ import { PaginationQueryDto } from '../common/pagination.dto';
 import { UpdatePermissionDto } from './dto/updatePermission.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
-@UseGuards(AuthGuard, RolesGuard)
+@UseGuards(AuthGuard)
 @ApiBearerAuth()
 @Controller('/roles')
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
   @Post('/:uuid/add-user-role')
+  @UseGuards(RolesGuard)
   @Permission({
     feature: EAdminFeature.USER,
     action: EAction.update,
@@ -55,6 +56,7 @@ export class RoleController {
   }
 
   @Post('/')
+  @UseGuards(RolesGuard)
   @Permission({
     feature: EAdminFeature.ROLE,
     action: EAction.insert,
@@ -75,6 +77,7 @@ export class RoleController {
   }
 
   @Put('/:uuid/permission')
+  @UseGuards(RolesGuard)
   @Permission({
     feature: EAdminFeature.ROLE,
     action: EAction.update,
@@ -95,6 +98,7 @@ export class RoleController {
   }
 
   @Get('/:uuid/permission')
+  @UseGuards(RolesGuard)
   @Permission({
     feature: EAdminFeature.ROLE,
     action: EAction.view,
@@ -114,6 +118,7 @@ export class RoleController {
   }
 
   @Get('/system')
+  @UseGuards(RolesGuard)
   @Permission({
     feature: EAdminFeature.ROLE,
     action: EAction.view,
@@ -129,6 +134,7 @@ export class RoleController {
   }
 
   @Get('/custom')
+  @UseGuards(RolesGuard)
   @Permission({
     feature: EAdminFeature.ROLE,
     action: EAction.view,
@@ -149,6 +155,24 @@ export class RoleController {
         success: true,
         message: `Company role.`,
         data: { rowCount: count, data },
+      });
+    } catch (error) {
+      res.status(httpStatus.INTERNAL_SERVER_ERROR);
+      res.json({ success: false, message: error.message });
+    }
+  }
+
+  @Get('/user')
+  async getUserRole(@CurrentUser() user: ICurrentUser, @Res() res: Response) {
+    try {
+      const data = await this.roleService.getUserRole(user.uuid);
+      res.json({
+        success: true,
+        message: `User's role.`,
+        data: {
+          role: data.roleUser,
+          permission: data.permission,
+        },
       });
     } catch (error) {
       res.status(httpStatus.INTERNAL_SERVER_ERROR);

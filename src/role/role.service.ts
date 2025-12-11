@@ -10,6 +10,7 @@ import { UpdatePermissionDto } from './dto/updatePermission.dto';
 import { PermissionEntity } from '../database/entities/permission.entity';
 import { FeatureEntity } from '../database/entities/feature.entity';
 import { ServiceEntity } from '../database/entities/service.entity';
+import { EStatus } from '../enum/common';
 
 @Injectable()
 export class RoleService {
@@ -200,6 +201,49 @@ export class RoleService {
         throw new Error(`Role not found.`);
       }
       return data;
+    } catch (error) {
+      this.logger.error(
+        error.message,
+        error.stack,
+        this.getPermissionRole.name,
+      );
+
+      throw Error(error);
+    }
+  }
+
+  async getUserRole(uuid: string) {
+    try {
+      this.logger.log(`get login user role`, this.getUserRole.name, { uuid });
+      const roleUser = await this.userRepository
+        .createQueryBuilder(`u`)
+        .innerJoin(RoleEntity, `r`, `u.role_uuid = r.uuid`)
+        .where(`u.uuid = :uuid`, { uuid })
+        .select([
+          `u.uuid AS user_uuid`,
+          `r.name AS name`,
+          `u."createdAt" AS "createdAt"`,
+          `u."updatedAt" AS "updatedAt"`,
+          `r.uuid AS role_uuid`,
+          `r.company_uuid AS company_uuid`,
+        ])
+        .getRawOne();
+      const permission = await this.permissionRepository
+        .createQueryBuilder(`p`)
+        .innerJoin(FeatureEntity, `f`, `f.uuid = p.feature_uuid`)
+        .innerJoin(ServiceEntity, `s`, `s.uuid = f.service_uuid`)
+        .where(`p.role_uuid = :uuid`, { uuid: roleUser.role_uuid })
+        .andWhere(`p.status = :status`, { status: EStatus.ACTIVE })
+        .select([
+          `p.uuid AS uuid`,
+          `s.uuid AS service_uuid`,
+          `s.name AS "serviceName"`,
+          `f.uuid AS feature_uuid`,
+          `f.name AS "featureName"`,
+          `p.permission AS permission`,
+        ])
+        .getRawMany();
+      return { roleUser, permission };
     } catch (error) {
       this.logger.error(
         error.message,

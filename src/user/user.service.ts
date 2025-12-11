@@ -15,6 +15,7 @@ import { InviteDto } from './dto/invite.dto';
 import { ICurrentUser } from '../current-user/current-user.decorator';
 import { UserGroupEntity } from '../database/entities/user-group.entity';
 import { GroupEntity } from '../database/entities/group.entity';
+import { RoleEntity } from '../database/entities/role.entity';
 
 @Injectable()
 export class UserService {
@@ -309,6 +310,53 @@ export class UserService {
       return profile;
     } catch (error) {
       this.logger.error(error.message, error.stack, this.getProfile.name);
+      throw new Error(error);
+    }
+  }
+
+  async listUser(page: number, limit: number, company: string) {
+    try {
+      const data = await this.companyUserRepository
+        .createQueryBuilder(`cu`)
+        .innerJoin(UserEntity, `u`, `u.uuid = cu.user_uuid`)
+        .innerJoin(UserGroupEntity, `ug`, `u.uuid = ug.user_uuid`)
+        .innerJoin(GroupEntity, `g`, `g.uuid = ug.group_uuid`)
+        .innerJoin(RoleEntity, `r`, `r.uuid = u.role_uuid`)
+        .where(`cu.company_uuid = :company`, { company })
+        .andWhere(`cu.status = :custatus`, { custatus: EStatus.ACTIVE })
+        .andWhere(`u.status = :ustatus`, { ustatus: EStatus.ACTIVE })
+        .select([
+          `u.uuid AS uuid`,
+          `pgp_sym_decrypt(u.email , '${this.configService.get('ENCRYPTION_KEY')}') AS email`,
+          `u."displayName" AS "displayName"`,
+          `string_agg(g.name, ',') AS "groupName"`,
+          `r.name AS "roleName"`,
+        ])
+        .groupBy(
+          `u.uuid, u."displayName", r.name, pgp_sym_decrypt(u.email , '${this.configService.get(
+            'ENCRYPTION_KEY',
+          )}')`,
+        )
+        .orderBy(`u."createdAt"`, 'DESC')
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .getRawMany();
+
+      // count users in company (one row per user)
+      const count = await this.companyUserRepository
+        .createQueryBuilder(`cu`)
+        .where(`cu.company_uuid = :company`, { company })
+        .andWhere(`cu.status = :custatus`, { custatus: EStatus.ACTIVE })
+        .getCount();
+
+      this.logger.log(`List user in company ${company}`, this.listUser.name, {
+        page,
+        limit,
+      });
+
+      return { data, count };
+    } catch (error) {
+      this.logger.error(error.message, error.stack, this.listUser.name);
       throw new Error(error);
     }
   }

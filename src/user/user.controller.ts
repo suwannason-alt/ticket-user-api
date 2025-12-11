@@ -144,6 +144,36 @@ export class UserController {
     }
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Permission({
+    feature: EAdminFeature.USER,
+    action: EAction.view,
+  })
+  @Get('/')
+  async getUserCompany(
+    @CurrentUser() user: ICurrentUser,
+    @Query() query: PaginationQueryDto,
+    @Res() res: Response,
+  ) {
+    try {
+      const results = await this.userService.listUser(
+        query.page,
+        query.limit,
+        user.company,
+      );
+      res.json({
+        success: true,
+        message: `List user in company`,
+        rowCount: results.count,
+        data: results.data,
+      });
+    } catch (error) {
+      this.logger.error(error.message, error.stack, this.getUserCompany.name);
+      res.status(httpStatus.INTERNAL_SERVER_ERROR);
+      res.json({ success: false, message: error.message });
+    }
+  }
+
   @UseGuards(AuthGuard)
   @Get('/profile')
   async getProfile(@CurrentUser() user: ICurrentUser, @Res() res: Response) {

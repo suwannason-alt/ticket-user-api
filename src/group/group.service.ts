@@ -42,7 +42,7 @@ export class GroupService {
         ])
         .execute();
 
-      return result.raw[0];
+      return result.identifiers[0];
     } catch (error) {
       this.logger.error(error.message, error.stack, this.createGroup.name, {
         body,

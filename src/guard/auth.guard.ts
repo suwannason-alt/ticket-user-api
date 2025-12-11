@@ -34,7 +34,6 @@ export class AuthGuard implements CanActivate {
     } catch (error) {
       this.logger.error(error.message, error.stack, this.canActivate.name);
       throw new UnauthorizedException('Authorization fail');
-      // return false;
     }
   }
 }

@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Permission } from '../permission/permission. decorator';
 import { ConfigService } from '@nestjs/config';
@@ -30,7 +35,10 @@ export class RolesGuard implements CanActivate {
       feature,
     );
     const allow = data.permission;
+    if (allow[action]) {
+      return true;
+    }
 
-    return allow[action];
+    throw new ForbiddenException(`Not have permission to access.`);
   }
 }

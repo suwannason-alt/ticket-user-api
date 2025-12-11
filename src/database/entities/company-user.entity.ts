@@ -6,7 +6,7 @@ import { EStatus } from '../../enum/common';
 
 @Entity({ name: 'company_user' })
 export class CompanyUserEntity extends TemplateEntity {
-  @Column({ type: 'enum', enum: EStatus, nullable: true })
+  @Column({ type: 'enum', enum: EStatus })
   status: EStatus;
 
   @ManyToOne(() => CompanyEntity, (company) => company.company_user)
