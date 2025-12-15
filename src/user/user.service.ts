@@ -325,6 +325,7 @@ export class UserService {
         .where(`cu.company_uuid = :company`, { company })
         .andWhere(`cu.status = :custatus`, { custatus: EStatus.ACTIVE })
         .andWhere(`u.status = :ustatus`, { ustatus: EStatus.ACTIVE })
+        .andWhere(`ug.status = :ugstatus`, { ugstatus: EStatus.ACTIVE })
         .select([
           `u.uuid AS uuid`,
           `pgp_sym_decrypt(u.email , '${this.configService.get('ENCRYPTION_KEY')}') AS email`,

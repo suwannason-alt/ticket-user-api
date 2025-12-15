@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -29,6 +30,7 @@ import {
   EAction,
   EAdminFeature,
 } from '../permission/interface/permission.interface';
+import { SearchUserDto } from '../user/dto/searchUser.dto';
 
 @ApiTags('Group')
 @ApiBearerAuth()
@@ -102,6 +104,75 @@ export class GroupController {
       this.logger.error(error.message, error.stack, this.listGroup.name);
       res.status(httpStatus.INTERNAL_SERVER_ERROR);
       res.json({ success: false, message: `Fail to fetch group.` });
+    }
+  }
+
+  @Get('/member/:uuid')
+  @Permission({
+    feature: EAdminFeature.GROUP,
+    action: EAction.view,
+  })
+  async getGroupMember(
+    @Param('uuid') uuid: string,
+    @Query() query: PaginationQueryDto,
+    @Res() res: Response,
+  ) {
+    try {
+      const results = await this.groupService.listMember(
+        uuid,
+        query.page,
+        query.limit,
+      );
+      res.json({
+        success: true,
+        message: `List member in group`,
+        data: {
+          rowCount: results.count,
+          data: results.data,
+        },
+      });
+    } catch (error) {
+      this.logger.error(error.message, error.stack, this.getGroupMember.name);
+      res.status(httpStatus.INTERNAL_SERVER_ERROR);
+      res.json({ success: false, message: `Fail to fetch user in group.` });
+    }
+  }
+
+  @Patch('/not-member/:uuid')
+  @Permission({
+    feature: EAdminFeature.GROUP,
+    action: EAction.view,
+  })
+  async getNotGroupMember(
+    @CurrentUser() user: ICurrentUser,
+    @Param('uuid') uuid: string,
+    @Body() body: SearchUserDto,
+    @Query() query: PaginationQueryDto,
+    @Res() res: Response,
+  ) {
+    try {
+      const results = await this.groupService.listNotMember(
+        { uuid: uuid, company: user.company },
+        body?.text,
+        query.page,
+        query.limit,
+      );
+      res.json({
+        success: true,
+        message: `List user not in group`,
+        data: {
+          rowCount: results.count,
+          data: results.data,
+        },
+      });
+    } catch (error) {
+      this.logger.error(
+        error.message,
+        error.stack,
+        this.getNotGroupMember.name,
+      );
+      res.status(httpStatus.INTERNAL_SERVER_ERROR);
+      res.json({ success: false, message: `Fail to fetch user not in group.` });
     }
   }
 

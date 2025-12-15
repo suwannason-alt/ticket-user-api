@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   Res,
@@ -30,6 +31,7 @@ import {
   EAction,
   EAdminFeature,
 } from '../permission/interface/permission.interface';
+import { SearchUserDto } from './dto/searchUser.dto';
 
 @Controller('/users')
 @ApiBearerAuth()
@@ -149,10 +151,11 @@ export class UserController {
     feature: EAdminFeature.USER,
     action: EAction.view,
   })
-  @Get('/')
+  @Patch('/')
   async getUserCompany(
     @CurrentUser() user: ICurrentUser,
     @Query() query: PaginationQueryDto,
+    @Body() body: SearchUserDto,
     @Res() res: Response,
   ) {
     try {

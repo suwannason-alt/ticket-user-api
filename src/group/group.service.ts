@@ -10,12 +10,16 @@ import { ICurrentUser } from '../current-user/current-user.decorator';
 import { UserGroupEntity } from '../database/entities/user-group.entity';
 import { UserEntity } from '../database/entities/user.entity';
 import { CompanyUserEntity } from '../database/entities/company-user.entity';
+import { ConfigService } from '@nestjs/config';
+import { RoleEntity } from '../database/entities/role.entity';
 
 @Injectable()
 export class GroupService {
   private readonly logger = new SaveAppLog(GroupService.name);
 
   constructor(
+    private readonly configService: ConfigService,
+
     @InjectRepository(GroupEntity)
     private readonly groupRepository: Repository<GroupEntity>,
 
@@ -87,6 +91,110 @@ export class GroupService {
     }
   }
 
+  async listNotMember(
+    params: { uuid: string; company: string },
+    text: string,
+    page: number,
+    limit: number,
+  ) {
+    try {
+      const query = this.userRepository
+        .createQueryBuilder('u')
+        .innerJoin(CompanyUserEntity, 'cu', 'u.uuid = cu.user_uuid')
+        .where(
+          (qb) => {
+            const sub = qb
+              .subQuery()
+              .select('g.company_uuid')
+              .from(GroupEntity, 'g')
+              .where('g.uuid = :guuid')
+              .getQuery();
+
+            return `cu.company_uuid = ${sub}`;
+          },
+          { guuid: params.uuid },
+        )
+        .andWhere('u.status = :ustatus', { ustatus: EStatus.ACTIVE })
+        .andWhere((qb) => {
+          const sub = qb
+            .subQuery()
+            .select('ug.user_uuid')
+            .from(UserGroupEntity, 'ug')
+            .where('ug.group_uuid = :group', { group: params.uuid })
+            .andWhere('ug.status = :ugstatus', { ugstatus: EStatus.ACTIVE })
+            .getQuery();
+          return `u.uuid NOT IN ${sub}`;
+        });
+
+      if (text) {
+        query.andWhere(
+          `(u."displayName" ILIKE :text OR pgp_sym_decrypt(u.email , '${this.configService.get('ENCRYPTION_KEY')}') ILIKE :text)`,
+          {
+            text: `%${text}%`,
+          },
+        );
+      }
+
+      const [data, count] = await Promise.all([
+        query
+          .select([
+            `u.uuid AS uuid`,
+            `u."displayName" AS "displayName"`,
+            `pgp_sym_decrypt(u.email , '${this.configService.get('ENCRYPTION_KEY')}') AS email`,
+          ])
+          .offset((page - 1) * limit)
+          .limit(limit)
+          .getRawMany(),
+        query.getCount(),
+      ]);
+
+      return { data, count };
+    } catch (error) {
+      this.logger.error(error.message, error.stack, this.listNotMember.name, {
+        uuid: params.uuid,
+        page,
+        limit,
+      });
+      throw new Error(error);
+    }
+  }
+
+  async listMember(uuid: string, page: number, limit: number) {
+    try {
+      const query = this.userGroupRepository
+        .createQueryBuilder(`ug`)
+        .innerJoin(UserEntity, `u`, `u.uuid = ug.user_uuid`)
+        .innerJoin(RoleEntity, `r`, `u.role_uuid = r.uuid`)
+        .where(`ug.group_uuid = :group`, { group: uuid })
+        .andWhere(`ug.status = :ugstatus`, { ugstatus: EStatus.ACTIVE })
+        .andWhere(`u.status = :ustatus`, { ustatus: EStatus.ACTIVE });
+
+      const [data, count] = await Promise.all([
+        query
+          .select([
+            `u.uuid AS uuid`,
+            `u."displayName" AS "displayName"`,
+            `pgp_sym_decrypt(u.email , '${this.configService.get('ENCRYPTION_KEY')}') AS email`,
+            `r.name AS "roleName"`,
+            `u.role_uuid AS role_uuid`,
+          ])
+          .offset((page - 1) * limit)
+          .limit(limit)
+          .getRawMany(),
+        query.getCount(),
+      ]);
+
+      return { data, count };
+    } catch (error) {
+      this.logger.error(error.message, error.stack, this.listMember.name, {
+        uuid,
+        page,
+        limit,
+      });
+      throw new Error(error);
+    }
+  }
+
   async updateGroup(body: CreateGroupDto, uuid: string, user: ICurrentUser) {
     try {
       const update = {};
@@ -123,6 +231,17 @@ export class GroupService {
         })
         .where(`uuid = :uuid`, { uuid })
         .andWhere(`company_uuid = :company`, { company: user.company })
+        .execute();
+
+      await this.userGroupRepository
+        .createQueryBuilder()
+        .update()
+        .set({
+          status: EStatus.ARCHIVED,
+          archivedBy: user.uuid,
+          archivedAt: new Date(),
+        })
+        .where(`group_uuid = :group`, { group: uuid })
         .execute();
       this.logger.log(`delete group completed`, this.deleteGroup.name, {
         uuid,
