@@ -89,6 +89,7 @@ export class RoleService {
           `r.uuid AS uuid`,
           `r.name AS name`,
           `r.description AS description`,
+          `r.company_uuid AS company_uuid`,
         ])
         .getRawMany();
       return data;
@@ -109,6 +110,7 @@ export class RoleService {
             `r.uuid AS uuid`,
             `r.name AS name`,
             `r.description AS description`,
+            `r.company_uuid AS company_uuid`,
           ])
           .useIndex('roles_company_idx')
           .offset((page - 1) * limit)

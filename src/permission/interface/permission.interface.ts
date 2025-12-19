@@ -13,7 +13,7 @@ export enum EAction {
 }
 
 export enum EAdminFeature {
-  CATEGORY = 'Category namagement',
+  CATEGORY = 'Category management',
   GROUP = 'Group management',
   ROLE = 'Role management',
   USER = 'User management',
@@ -26,7 +26,7 @@ export enum ETicketFeature {
 }
 
 export enum EAllFeature {
-  CATEGORY = 'Category namagement',
+  CATEGORY = 'Category management',
   GROUP = 'Group management',
   ROLE = 'Role management',
   USER = 'User management',

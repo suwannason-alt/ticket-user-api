@@ -177,6 +177,7 @@ export class CompanyService {
         .getRawMany();
 
       this.logger.log(`company ${company} read feature`);
+      this.logger.debug(data, this.companyFeature.name);
 
       return data;
     } catch (error) {
