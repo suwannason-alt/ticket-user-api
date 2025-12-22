@@ -18,6 +18,9 @@ export class CompanyEntity extends TemplateEntity {
   city: string;
 
   @Column({ type: 'varchar', nullable: true })
+  logo: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
   state: string;
 
   @Column({ type: 'varchar', nullable: true })
@@ -33,7 +36,7 @@ export class CompanyEntity extends TemplateEntity {
   telephone: string;
 
   @Column({ type: 'varchar', nullable: true })
-  webSite: string;
+  website: string;
 
   @Column({ type: 'varchar', nullable: true })
   description: string;

@@ -17,6 +17,11 @@ export class CreateCompanyDto {
   telephone: string;
 
   @ApiProperty()
+  @IsString()
+  @IsOptional()
+  website: string;
+
+  @ApiProperty()
   @IsEmail()
   @IsOptional()
   email: string;

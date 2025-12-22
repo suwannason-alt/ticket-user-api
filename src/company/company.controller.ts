@@ -70,6 +70,29 @@ export class CompanyController {
     }
   }
 
+  @Get('/current')
+  async getCurrentCompany(
+    @CurrentUser() user: ICurrentUser,
+    @Res() res: Response,
+  ) {
+    try {
+      const company = await this.companyService.getCompanyById(user.company);
+      res.status(httpStatus.OK);
+      res.json({
+        success: true,
+        message: `Get current company completed.`,
+        data: company,
+      });
+    } catch (error) {
+      this.logger.error(
+        error.message,
+        error.stack,
+        this.getCurrentCompany.name,
+      );
+      res.status(httpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   @Put('/:id')
   @UseGuards(RolesGuard)
   @Permission({
@@ -83,9 +106,9 @@ export class CompanyController {
     @Res() res: Response,
   ) {
     try {
-      await this.companyService.update(body, id, user.uuid);
+      const data = await this.companyService.update(body, id, user.uuid);
       res.status(httpStatus.OK);
-      res.json({ success: true, message: `Update company completed.` });
+      res.json({ success: true, message: `Update company completed.`, data });
     } catch (error) {
       this.logger.error(error.message, error.stack, this.update.name);
       res.status(httpStatus.INTERNAL_SERVER_ERROR);

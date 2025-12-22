@@ -76,7 +76,7 @@ export class CompanyService {
 
   async update(body: CreateCompanyDto, uuid: string, userId: string) {
     try {
-      await this.companyRepoSitory
+      const results = await this.companyRepoSitory
         .createQueryBuilder()
         .update()
         .set({
@@ -86,18 +86,24 @@ export class CompanyService {
           email: body.email,
           city: body.city,
           state: body.state,
+          website: body.website,
+          logo: null,
           country: body.country,
           postalCode: body.postalCode,
           description: body.description,
           updatedBy: userId,
         })
         .where(`uuid = :uuid`, { uuid })
+        .returning('*')
         .execute();
-      this.logger.log(`update company completed`, this.create.name, {
+      this.logger.log(`update company completed`, this.update.name, {
         name: body.name,
+        updateBy: userId,
       });
+
+      return results.raw[0];
     } catch (error) {
-      this.logger.error(error.message, error.stack, this.create.name);
+      this.logger.error(error.message, error.stack, this.update.name);
     }
   }
 
@@ -241,6 +247,36 @@ export class CompanyService {
       return companys;
     } catch (error) {
       this.logger.error(error.message, error.stack, this.getUserCompanys.name);
+      throw new Error(error);
+    }
+  }
+
+  async getCompanyById(uuid: string) {
+    try {
+      const company = await this.companyRepoSitory
+        .createQueryBuilder(`c`)
+        .where(`c.uuid = :uuid`, { uuid })
+        .andWhere(`c.status = :status`, { status: EStatus.ACTIVE })
+        .select([
+          `c.uuid AS uuid`,
+          `c.name AS name`,
+          `c.address AS address`,
+          `c.telephone AS telephone`,
+          `c.email AS email`,
+          `c.city AS city`,
+          `c.logo AS logo`,
+          `c.state AS state`,
+          `c.country AS country`,
+          `c."postalCode" AS "postalCode"`,
+          `c.description AS description`,
+          `c."website" AS "website"`,
+        ])
+        .getRawOne();
+
+      this.logger.log(`get company by id`, this.getCompanyById.name);
+      return company;
+    } catch (error) {
+      this.logger.error(error.message, error.stack, this.getCompanyById.name);
       throw new Error(error);
     }
   }
