@@ -5,7 +5,8 @@ export class InviteDto {
   @ApiProperty()
   @IsString()
   @IsUUID()
-  group: string;
+  @IsNotEmpty()
+  role: string;
 
   @ApiProperty()
   @IsEmail()

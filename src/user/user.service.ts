@@ -166,22 +166,10 @@ export class UserService {
             password: null,
             agreeTermsPolicy: false,
             status: commonStatus.PENDING,
+            role_uuid: body.role,
           },
         ])
-        .execute();
-
-      await this.userGroupRepository
-        .createQueryBuilder()
-        .insert()
-        .into(UserGroupEntity)
-        .values([
-          {
-            group_uuid: body.group,
-            user_uuid: newUser.raw[0].uuid,
-            status: commonStatus.PENDING,
-            createdBy: userInfo.uuid,
-          },
-        ])
+        .returning(['uuid'])
         .execute();
 
       await this.companyUserRepository
