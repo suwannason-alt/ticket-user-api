@@ -11,6 +11,7 @@ import { PermissionEntity } from '../database/entities/permission.entity';
 import { FeatureEntity } from '../database/entities/feature.entity';
 import { ServiceEntity } from '../database/entities/service.entity';
 import { EStatus } from '../enum/common';
+import { CompanyUserEntity } from '../database/entities/company-user.entity';
 
 @Injectable()
 export class RoleService {
@@ -25,9 +26,12 @@ export class RoleService {
 
     @InjectRepository(PermissionEntity)
     private readonly permissionRepository: Repository<PermissionEntity>,
+
+    @InjectRepository(CompanyUserEntity)
+    private readonly companyUserRepository: Repository<CompanyUserEntity>,
   ) {}
 
-  async updateUserRole(role_uuid: string, users: string[]) {
+  async updateUserRole(role_uuid: string, users: string[], user: ICurrentUser) {
     try {
       const role = await this.roleRepository
         .createQueryBuilder(`r`)
@@ -37,13 +41,16 @@ export class RoleService {
       if (!role) {
         throw new Error(`Role not exist`);
       }
-      await this.userRepository
+      await this.companyUserRepository
         .createQueryBuilder()
         .update()
         .set({
           role_uuid,
+          updatedAt: new Date(),
+          updatedBy: user.uuid,
         })
-        .where(`uuid IN(:...users)`, { users })
+        .where(`user_uuid IN(:...users)`, { users })
+        .andWhere(`company_uuid = :company`, { company: user.company })
         .execute();
 
       this.logger.log(`update user role completed`, this.updateUserRole.name, {

@@ -10,7 +10,7 @@ import { TemplateEntity } from './template.entity';
 import { EStatus } from '../../enum/common';
 import { CompanyEntity } from './company.entity';
 import { PermissionEntity } from './permission.entity';
-import { UserEntity } from './user.entity';
+import { CompanyUserEntity } from './company-user.entity';
 
 @Entity({ name: 'roles' })
 export class RoleEntity extends TemplateEntity {
@@ -33,6 +33,6 @@ export class RoleEntity extends TemplateEntity {
   @OneToMany(() => PermissionEntity, (permission) => permission.role_uuid)
   permissions: PermissionEntity[];
 
-  @OneToMany(() => UserEntity, (user) => user.role_uuid)
-  users: UserEntity[];
+  @OneToMany(() => CompanyUserEntity, (cu) => cu.role_uuid)
+  companyUser: CompanyUserEntity[];
 }

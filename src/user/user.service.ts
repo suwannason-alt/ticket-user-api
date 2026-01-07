@@ -166,7 +166,7 @@ export class UserService {
             password: null,
             agreeTermsPolicy: false,
             status: commonStatus.PENDING,
-            role_uuid: body.role,
+            createdBy: userInfo.uuid,
           },
         ])
         .returning(['uuid'])
@@ -181,6 +181,8 @@ export class UserService {
             status: commonStatus.PENDING,
             company_uuid: userInfo.company,
             user_uuid: newUser.raw[0].uuid,
+            role_uuid: body.role,
+            createdBy: userInfo.uuid,
           },
         ])
         .execute();

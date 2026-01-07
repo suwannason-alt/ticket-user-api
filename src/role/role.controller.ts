@@ -43,12 +43,13 @@ export class RoleController {
     action: EAction.update,
   })
   async addUserRole(
+    @CurrentUser() user: ICurrentUser,
     @Param('uuid') role: string,
     @Body() body: AddUserRoleDto,
     @Res() res: Response,
   ) {
     try {
-      await this.roleService.updateUserRole(role, body.users);
+      await this.roleService.updateUserRole(role, body.users, user);
       res.json({ success: true, message: `Update user role completed.` });
     } catch (error) {
       res.status(httpStatus.INTERNAL_SERVER_ERROR);

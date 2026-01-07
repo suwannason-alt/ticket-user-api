@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../database/entities/user.entity';
 import { Brackets, Repository } from 'typeorm';
 import { RoleEntity } from '../database/entities/role.entity';
 import { PermissionEntity } from '../database/entities/permission.entity';
@@ -10,6 +9,7 @@ import { SaveAppLog } from '../utils/logger';
 import { EStatus } from '../enum/common';
 import { CreatePermissionDto } from './dto/permission.dto';
 import { ICurrentUser } from '../current-user/current-user.decorator';
+import { CompanyUserEntity } from '../database/entities/company-user.entity';
 
 @Injectable()
 export class PermissionService {
@@ -23,7 +23,7 @@ export class PermissionService {
     return this.permissionRepository
       .createQueryBuilder(`p`)
       .innerJoin(RoleEntity, `r`, `r.uuid = p.role_uuid`)
-      .innerJoin(UserEntity, `u`, `u.role_uuid = r.uuid`)
+      .innerJoin(CompanyUserEntity, `cu`, `cu.role_uuid = r.uuid`)
       .innerJoin(FeatureEntity, `f`, `f.uuid = p.feature_uuid`)
       .innerJoin(ServiceEntity, `s`, `s.uuid = f.service_uuid`);
   }
@@ -36,7 +36,8 @@ export class PermissionService {
   ) {
     try {
       const query = this.baseQueryBuilder();
-      query.where(`u.uuid = :user`, { user: user_uuid });
+      query.where(`cu.user_uuid = :user`, { user: user_uuid });
+      query.andWhere(`cu.company_uuid = :company`);
       query.andWhere(`r.status = :status`, { status: EStatus.ACTIVE });
       query.andWhere(
         new Brackets((qb) => {
@@ -53,7 +54,7 @@ export class PermissionService {
         .useIndex('permissions_role_idx')
         .andWhere(`f.name = :feature`, { feature })
         .select([
-          'u.uuid AS uuid',
+          'cu.user_uuid AS uuid',
           's.name AS service',
           'f.name AS feature',
           'p.permission AS permission',

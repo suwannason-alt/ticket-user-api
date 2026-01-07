@@ -3,6 +3,7 @@ import { TemplateEntity } from './template.entity';
 import { CompanyEntity } from './company.entity';
 import { UserEntity } from './user.entity';
 import { EStatus } from '../../enum/common';
+import { RoleEntity } from './role.entity';
 
 @Entity({ name: 'company_user' })
 export class CompanyUserEntity extends TemplateEntity {
@@ -17,4 +18,8 @@ export class CompanyUserEntity extends TemplateEntity {
   @ManyToOne(() => UserEntity, (user) => user.companyUser)
   @JoinColumn({ name: 'user_uuid' })
   user_uuid: string;
+
+  @ManyToOne(() => RoleEntity, (role) => role.companyUser)
+  @JoinColumn({ name: 'role_uuid' })
+  role_uuid: string;
 }
