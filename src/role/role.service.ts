@@ -224,9 +224,10 @@ export class RoleService {
   async getUserRole(uuid: string) {
     try {
       this.logger.log(`get login user role`, this.getUserRole.name, { uuid });
-      const roleUser = await this.userRepository
-        .createQueryBuilder(`u`)
-        .innerJoin(RoleEntity, `r`, `u.role_uuid = r.uuid`)
+      const roleUser = await this.companyUserRepository
+        .createQueryBuilder(`cu`)
+        .innerJoin(UserEntity, `u`, `u.uuid = cu.user_uuid`)
+        .innerJoin(RoleEntity, `r`, `cu.role_uuid = r.uuid`)
         .where(`u.uuid = :uuid`, { uuid })
         .select([
           `u.uuid AS user_uuid`,
