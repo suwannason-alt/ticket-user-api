@@ -31,10 +31,11 @@ import {
   EAdminFeature,
 } from '../permission/interface/permission.interface';
 import { SearchUserDto } from '../user/dto/searchUser.dto';
+import { CompanyGuard } from '../guard/company.guard';
 
 @ApiTags('Group')
 @ApiBearerAuth()
-@UseGuards(AuthGuard, RolesGuard)
+@UseGuards(AuthGuard, CompanyGuard, RolesGuard)
 @Controller('/groups')
 export class GroupController {
   private readonly logger = new SaveAppLog(GroupController.name);

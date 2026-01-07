@@ -21,9 +21,10 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { RolesGuard } from '../guard/role.guard';
 import { Permission } from './permission. decorator';
 import { EAction, EAdminFeature } from './interface/permission.interface';
+import { CompanyGuard } from '../guard/company.guard';
 
 @ApiBearerAuth()
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, CompanyGuard)
 @Controller('/permissions')
 export class PermissionController {
   private readonly logger = new SaveAppLog(PermissionController.name);

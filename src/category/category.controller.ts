@@ -15,10 +15,11 @@ import {
   EAction,
   EAdminFeature,
 } from '../permission/interface/permission.interface';
+import { CompanyGuard } from '../guard/company.guard';
 
 @ApiTags('Category')
 @Controller('/category')
-@UseGuards(AuthGuard, RolesGuard)
+@UseGuards(AuthGuard, CompanyGuard, RolesGuard)
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 

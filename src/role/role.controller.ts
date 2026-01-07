@@ -28,6 +28,7 @@ import { CreateRoleDto } from './dto/createRole.dto';
 import { PaginationQueryDto } from '../common/pagination.dto';
 import { UpdatePermissionDto } from './dto/updatePermission.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { CompanyGuard } from '../guard/company.guard';
 
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
@@ -36,7 +37,7 @@ export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
   @Post('/:uuid/add-user-role')
-  @UseGuards(RolesGuard)
+  @UseGuards(CompanyGuard, RolesGuard)
   @Permission({
     feature: EAdminFeature.USER,
     action: EAction.update,
@@ -56,7 +57,7 @@ export class RoleController {
   }
 
   @Post('/')
-  @UseGuards(RolesGuard)
+  @UseGuards(CompanyGuard, RolesGuard)
   @Permission({
     feature: EAdminFeature.ROLE,
     action: EAction.insert,
@@ -77,7 +78,7 @@ export class RoleController {
   }
 
   @Put('/:uuid/permission')
-  @UseGuards(RolesGuard)
+  @UseGuards(CompanyGuard, RolesGuard)
   @Permission({
     feature: EAdminFeature.ROLE,
     action: EAction.update,
@@ -98,7 +99,7 @@ export class RoleController {
   }
 
   @Get('/:uuid/permission')
-  @UseGuards(RolesGuard)
+  @UseGuards(CompanyGuard, RolesGuard)
   @Permission({
     feature: EAdminFeature.ROLE,
     action: EAction.view,
@@ -134,7 +135,7 @@ export class RoleController {
   }
 
   @Get('/custom')
-  @UseGuards(RolesGuard)
+  @UseGuards(CompanyGuard, RolesGuard)
   @Permission({
     feature: EAdminFeature.ROLE,
     action: EAction.view,

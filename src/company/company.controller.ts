@@ -26,6 +26,7 @@ import {
   EAction,
   EAdminFeature,
 } from '../permission/interface/permission.interface';
+import { CompanyGuard } from '../guard/company.guard';
 
 @ApiTags('Company')
 @ApiBearerAuth()
@@ -94,7 +95,7 @@ export class CompanyController {
   }
 
   @Put('/:id')
-  @UseGuards(RolesGuard)
+  @UseGuards(CompanyGuard, RolesGuard)
   @Permission({
     feature: EAdminFeature.COMPANY,
     action: EAction.update,
@@ -116,7 +117,7 @@ export class CompanyController {
   }
 
   @Delete('/:id')
-  @UseGuards(RolesGuard)
+  @UseGuards(CompanyGuard, RolesGuard)
   @Permission({
     feature: EAdminFeature.COMPANY,
     action: EAction.delete,
@@ -174,7 +175,10 @@ export class CompanyController {
     @Res() res: Response,
   ) {
     try {
-      const isActive = await this.companyService.isActive(user.company);
+      const isActive = await this.companyService.isActive(
+        user.company,
+        user.uuid,
+      );
       if (isActive) {
         res.status(httpStatus.OK);
         res.json({ success: true, message: `Verify company completed.` });

@@ -32,6 +32,7 @@ import {
   EAdminFeature,
 } from '../permission/interface/permission.interface';
 import { SearchUserDto } from './dto/searchUser.dto';
+import { CompanyGuard } from '../guard/company.guard';
 
 @Controller('/users')
 @ApiBearerAuth()
@@ -98,7 +99,7 @@ export class UserController {
     }
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(AuthGuard, RolesGuard, CompanyGuard)
   @Permission({
     feature: EAdminFeature.USER,
     action: EAction.insert,
@@ -120,7 +121,7 @@ export class UserController {
     }
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(AuthGuard, RolesGuard, CompanyGuard)
   @Permission({
     feature: EAdminFeature.USER,
     action: EAction.view,
@@ -146,7 +147,7 @@ export class UserController {
     }
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(AuthGuard, RolesGuard, CompanyGuard)
   @Permission({
     feature: EAdminFeature.USER,
     action: EAction.view,
@@ -193,7 +194,7 @@ export class UserController {
   }
 
   @Delete('/:uuid')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(AuthGuard, RolesGuard, CompanyGuard)
   @Permission({
     feature: EAdminFeature.USER,
     action: EAction.delete,

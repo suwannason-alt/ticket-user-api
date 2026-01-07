@@ -137,13 +137,17 @@ export class CompanyService {
     }
   }
 
-  async isActive(uuid: string) {
+  async isActive(uuid: string, user_uuid: string): Promise<boolean> {
     try {
       const company = await this.companyRepoSitory
         .createQueryBuilder(`c`)
+        .innerJoin(CompanyUserEntity, `cu`, `c.uuid = cu.company_uuid`)
         .where(`c.uuid = :uuid`, { uuid })
+        .andWhere(`cu.user_uuid = :user`, { user: user_uuid })
         .andWhere(`c.status = :status`, { status: EStatus.ACTIVE })
-        .getOne();
+        .andWhere(`cu.status = :custatus`, { custatus: EStatus.ACTIVE })
+        .select([`cu.company_uuid AS company`, `cu.user_uuid AS user`])
+        .getRawOne();
 
       return company ? true : false;
     } catch (error) {

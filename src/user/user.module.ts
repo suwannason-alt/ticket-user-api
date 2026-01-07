@@ -7,7 +7,6 @@ import { UserProvider } from '../database/entities/userProvider.entity';
 import { CredentialModule } from '../credential/credential.module';
 import { CompanyUserEntity } from '../database/entities/company-user.entity';
 import { UserGroupEntity } from '../database/entities/user-group.entity';
-import { PermissionModule } from '../permission/permission.module';
 
 @Module({
   imports: [
@@ -18,7 +17,6 @@ import { PermissionModule } from '../permission/permission.module';
       UserGroupEntity,
     ]),
     CredentialModule,
-    PermissionModule,
   ],
   controllers: [UserController],
   providers: [UserService],
