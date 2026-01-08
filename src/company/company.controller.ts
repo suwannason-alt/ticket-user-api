@@ -22,6 +22,7 @@ import { CurrentUser } from '../current-user/current-user.decorator';
 import type { ICurrentUser } from '../current-user/current-user.decorator';
 import { RolesGuard } from '../guard/role.guard';
 import { Permission } from '../permission/permission. decorator';
+import { CredentialService } from '../credential/credential.service';
 import {
   EAction,
   EAdminFeature,
@@ -34,18 +35,29 @@ import { CompanyGuard } from '../guard/company.guard';
 @Controller('/company')
 export class CompanyController {
   private readonly logger = new SaveAppLog(CompanyController.name);
-  constructor(private readonly companyService: CompanyService) {}
+  constructor(
+    private readonly companyService: CompanyService,
+    private readonly credentialService: CredentialService,
+  ) {}
   @Post('/')
   async create(
     @CurrentUser() user: ICurrentUser,
     @Body() body: CreateCompanyDto,
     @Res() res: Response,
+    @Headers('Authorization') authorization: string,
   ) {
     try {
       this.logger.debug({ user });
-      await this.companyService.create(body, user.uuid);
+      const company = await this.companyService.create(body, user.uuid);
+      const jwt = await this.credentialService.changeToken(
+        authorization,
+        {
+          uuid: user.uuid,
+          company: company,
+        },
+      );
       res.status(httpStatus.OK);
-      res.json({ success: true, message: `Create company completed.` });
+      res.json({ success: true, data: jwt.data.token, message: `Create company completed.` });
     } catch (error) {
       res.status(httpStatus.INTERNAL_SERVER_ERROR);
       res.json({ success: false, message: error.message });

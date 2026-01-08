@@ -3,6 +3,8 @@ import {
   CanActivate,
   ExecutionContext,
   GoneException,
+  ConflictException,
+  NotAcceptableException,
 } from '@nestjs/common';
 import { SaveAppLog } from '../utils/logger';
 import { CompanyService } from '../company/company.service';
@@ -17,6 +19,10 @@ export class CompanyGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const profile = request.user;
     this.logger.debug({ profile });
+    if(!profile.company)
+    {
+      throw new NotAcceptableException(`No company selected. Please select a company to proceed.`); 
+    }
     const canAccess = await this.companyService.isActive(
       profile.company,
       profile.uuid,
@@ -34,6 +40,6 @@ export class CompanyGuard implements CanActivate {
       },
     );
 
-    throw new GoneException(`Not permited to access company.`);
+    throw new ConflictException(`Your company is not active. Please contact administrator.`);
   }
 }

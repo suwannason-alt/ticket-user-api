@@ -6,6 +6,7 @@ import { CompanyEntity } from '../database/entities/company.entity';
 import { CompanyUserEntity } from '../database/entities/company-user.entity';
 import { ServiceEntity } from '../database/entities/service.entity';
 import { FeatureEntity } from '../database/entities/feature.entity';
+import { RoleEntity } from '../database/entities/role.entity';
 import { CredentialModule } from '../credential/credential.module';
 
 @Global()
@@ -16,6 +17,7 @@ import { CredentialModule } from '../credential/credential.module';
       CompanyUserEntity,
       ServiceEntity,
       FeatureEntity,
+      RoleEntity,
     ]),
     CredentialModule,
   ],

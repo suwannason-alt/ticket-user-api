@@ -183,6 +183,7 @@ export class UserController {
   async getProfile(@CurrentUser() user: ICurrentUser, @Res() res: Response) {
     try {
       const profile = await this.userService.getProfile(user.uuid);
+      this.logger.debug({ profile, user });
       Object.assign(profile, { company: user.company });
       res.status(httpStatus.OK);
       res.json({ success: true, data: profile });

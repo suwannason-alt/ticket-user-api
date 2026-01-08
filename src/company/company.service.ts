@@ -8,6 +8,7 @@ import { CompanyUserEntity } from '../database/entities/company-user.entity';
 import { EStatus } from '../enum/common';
 import { ServiceEntity } from '../database/entities/service.entity';
 import { FeatureEntity } from '../database/entities/feature.entity';
+import { RoleEntity } from '../database/entities/role.entity';
 import { ICurrentUser } from '../current-user/current-user.decorator';
 import { CredentialService } from '../credential/credential.service';
 
@@ -26,6 +27,9 @@ export class CompanyService {
 
     @InjectRepository(FeatureEntity)
     private readonly featureRepository: Repository<FeatureEntity>,
+
+    @InjectRepository(RoleEntity)
+    private readonly roleRepository: Repository<RoleEntity>,
 
     private readonly credentialService: CredentialService,
   ) {}
@@ -48,26 +52,38 @@ export class CompanyService {
             postalCode: body.postalCode,
             description: body.description,
             createdBy: userId,
+            status: EStatus.ACTIVE,
           },
         ])
         .execute();
-
-      this.logger.debug(company.raw);
+      const role = await this.roleRepository
+      .createQueryBuilder('role')
+      .where('role.name = :name', { name: 'Admin' })
+      .andWhere('role.company_uuid IS NULL')
+      .getOne();
+      
+      const roleUuid = role?.uuid;
+      
+      const companyUuid = company.raw[0].uuid;
       await this.companyUserRepository
         .createQueryBuilder()
         .insert()
         .into(CompanyUserEntity)
         .values([
           {
-            company_uuid: company.raw[0].uuid,
+            company_uuid: companyUuid,
             user_uuid: userId,
+            role_uuid: roleUuid,
+            status: EStatus.ACTIVE,
           },
         ])
         .execute();
 
       this.logger.log(`create company completed`, this.create.name, {
         name: body.name,
+        companyUuid
       });
+      return companyUuid;
     } catch (error) {
       this.logger.error(error.message, error.stack, this.create.name);
       throw new Error(error);
@@ -139,6 +155,7 @@ export class CompanyService {
 
   async isActive(uuid: string, user_uuid: string): Promise<boolean> {
     try {
+      this.logger.debug(`check company active ${uuid} for user ${user_uuid}`);
       const company = await this.companyRepoSitory
         .createQueryBuilder(`c`)
         .innerJoin(CompanyUserEntity, `cu`, `c.uuid = cu.company_uuid`)
@@ -148,7 +165,7 @@ export class CompanyService {
         .andWhere(`cu.status = :custatus`, { custatus: EStatus.ACTIVE })
         .select([`cu.company_uuid AS company`, `cu.user_uuid AS user`])
         .getRawOne();
-
+      this.logger.debug(`company is active: `, this.isActive.name, company);
       return company ? true : false;
     } catch (error) {
       this.logger.error(error.message, error.stack, this.isActive.name);
