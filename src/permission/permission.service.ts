@@ -103,15 +103,9 @@ export class PermissionService {
     try {
       const query = this.baseQueryBuilder();
       query.where(`cu.user_uuid = :user`, { user: user_uuid });
+      query.andWhere(`cu.company_uuid = :company`, { company: company_uuid });
       query.andWhere(`r.status = :status`, { status: EStatus.ACTIVE });
-      query.andWhere(
-        new Brackets((qb) => {
-          qb.where('cu.company_uuid IS NULL').orWhere(
-            'cu.company_uuid = :company',
-            { company: company_uuid },
-          );
-        }),
-      );
+      query.andWhere(`cu.status = :custatus`, { custatus: EStatus.ACTIVE });
       query.groupBy(`s.uuid`).addGroupBy(`s.name`);
       query.select([
         's.uuid AS uuid',

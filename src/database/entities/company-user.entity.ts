@@ -7,7 +7,7 @@ import { RoleEntity } from './role.entity';
 
 @Entity({ name: 'company_user' })
 export class CompanyUserEntity extends TemplateEntity {
-  @Column({ type: 'enum', enum: EStatus })
+  @Column({ type: 'enum', enum: EStatus, enumName: 'common' })
   status: EStatus;
 
   @ManyToOne(() => CompanyEntity, (company) => company.company_user)

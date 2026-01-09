@@ -41,7 +41,11 @@ export class CompanyEntity extends TemplateEntity {
   @Column({ type: 'varchar', nullable: true })
   description: string;
 
-  @Column({ type: 'enum', enum: EStatus, default: EStatus.ACTIVE })
+  @Column({
+    type: 'enum',
+    enum: EStatus,
+    default: EStatus.ACTIVE,
+  })
   status: EStatus;
 
   @OneToMany(() => CompanyUserEntity, (companyUser) => companyUser.company_uuid)

@@ -9,7 +9,11 @@ export class FeatureEntity extends TemplateEntity {
   @Column()
   name: string;
 
-  @Column({ type: 'enum', enum: EStatus, default: EStatus.ACTIVE })
+  @Column({
+    type: 'enum',
+    enum: EStatus,
+    default: EStatus.ACTIVE,
+  })
   status: EStatus;
 
   @ManyToOne(() => ServiceEntity, (service) => service.features)

@@ -311,7 +311,7 @@ export class UserService {
         .innerJoin(UserEntity, `u`, `u.uuid = cu.user_uuid`)
         .innerJoin(UserGroupEntity, `ug`, `u.uuid = ug.user_uuid`)
         .innerJoin(GroupEntity, `g`, `g.uuid = ug.group_uuid`)
-        .innerJoin(RoleEntity, `r`, `r.uuid = u.role_uuid`)
+        .innerJoin(RoleEntity, `r`, `r.uuid = cu.role_uuid`)
         .where(`cu.company_uuid = :company`, { company })
         .andWhere(`cu.status = :custatus`, { custatus: EStatus.ACTIVE })
         .andWhere(`u.status = :ustatus`, { ustatus: EStatus.ACTIVE })

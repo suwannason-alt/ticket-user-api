@@ -18,9 +18,6 @@ export class RoleService {
   private readonly logger = new SaveAppLog(RoleService.name);
 
   constructor(
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
-
     @InjectRepository(RoleEntity)
     private readonly roleRepository: Repository<RoleEntity>,
 
